@@ -27,3 +27,6 @@
 *.exe
 *.out
 *.app
+
+# JUCE library code
+JuceLibraryCode
