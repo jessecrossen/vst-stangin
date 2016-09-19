@@ -1,3 +1,5 @@
 #!/bin/bash
 
-make && juce-host stangin.filtergraph
+VST=~/.vst/jgc/
+mkdir -p "$VST"
+make && cp build/stangin.so "$VST" && juce-host stangin.filtergraph

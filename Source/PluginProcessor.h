@@ -50,12 +50,12 @@ class StanginAudioProcessor  : public AudioProcessor {
     StanginAudioProcessor();
     ~StanginAudioProcessor();
 
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
-    bool setPreferredBusArrangement (bool isInput, int bus, const AudioChannelSet& preferredSet) override;
+    bool setPreferredBusArrangement(bool isInput, int bus, const AudioChannelSet& preferredSet) override;
    
-    void processBlock (AudioSampleBuffer&, MidiBuffer&) override;
+    void processBlock(AudioSampleBuffer&, MidiBuffer&) override;
 
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -68,12 +68,12 @@ class StanginAudioProcessor  : public AudioProcessor {
 
     int getNumPrograms() override;
     int getCurrentProgram() override;
-    void setCurrentProgram (int index) override;
-    const String getProgramName (int index) override;
-    void changeProgramName (int index, const String& newName) override;
+    void setCurrentProgram(int index) override;
+    const String getProgramName(int index) override;
+    void changeProgramName(int index, const String& newName) override;
 
-    void getStateInformation (MemoryBlock& destData) override;
-    void setStateInformation (const void* data, int sizeInBytes) override;
+    void getStateInformation(MemoryBlock& destData) override;
+    void setStateInformation(const void* data, int sizeInBytes) override;
 
     GuitarState guitar;
     
@@ -90,7 +90,7 @@ class StanginAudioProcessor  : public AudioProcessor {
     GuitarState onButton(GuitarState state, ButtonIndex button, int sample);
 
   private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StanginAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StanginAudioProcessor)
 };
 
 #endif  // PLUGINPROCESSOR_H_INCLUDED

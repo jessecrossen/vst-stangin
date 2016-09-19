@@ -4,6 +4,10 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
 
+typedef struct {
+  uint8_t string[6];
+} Tuning;
+
 class StanginAudioProcessorEditor  : public AudioProcessorEditor, public Timer {
   public:
     StanginAudioProcessorEditor (StanginAudioProcessor&);
@@ -13,6 +17,7 @@ class StanginAudioProcessorEditor  : public AudioProcessorEditor, public Timer {
     void resized() override;
     
     void drawStrings(Graphics &g);
+    void drawTuningMenu(Graphics &g);
     void drawSlider(Graphics &g, Rectangle<int> area, String text, float value, bool active);
     void drawButton(Graphics &g, Rectangle<int> area, String text, bool on);
     
@@ -30,6 +35,8 @@ class StanginAudioProcessorEditor  : public AudioProcessorEditor, public Timer {
     Colour bg, fg; // the background and foreground colors to draw with
     Colour accent; // an accent color to make elements stand out
     Rectangle<int> stringArea; // the area for the string display
+    Rectangle<int> tuningArea; // the area that displays the current tuning
+    Rectangle<int> tuningMenuArea; // the button area for a menu of tunings
     Rectangle<int> sustainArea; // the area for the sustain slider
     Rectangle<int> detuneArea; // the area for the detune slider
     Rectangle<int> hammeronArea; // the area for the hammer-on toggle
@@ -39,6 +46,18 @@ class StanginAudioProcessorEditor  : public AudioProcessorEditor, public Timer {
     // whether the user is changing slider values
     bool sustainActive = false;
     bool detuneActive = false;
+    
+    // a popup menu of tunings
+    PopupMenu tuningMenu;
+    // tunings keyed by index
+    Array<Tuning> tunings;
+    // initialize the tuning menu
+    void initTuningMenu();
+    void addTuning(const char *name, 
+      const char *s0, const char *s1, const char *s2, 
+      const char *s3, const char *s4, const char *s5);
+    uint8_t nextNote(uint8_t note, const char *pitchClass);
+    uint8_t getOffsetForPitchClass(const char *pitchClass);
     
     // get the value a slider should have for the given mouse position
     float getSliderFraction(const MouseEvent &event, const Rectangle<int> area);

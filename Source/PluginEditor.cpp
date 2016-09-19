@@ -12,6 +12,8 @@ StanginAudioProcessorEditor::StanginAudioProcessorEditor (StanginAudioProcessor&
   bg = Colour::greyLevel(0.1);
   fg = Colour::greyLevel(1.0);
   accent = Colour::fromHSV(0.0, 1.0, 0.75, 1.0);
+  // set up the menu of tunings
+  initTuningMenu();
   // start updating the display
   startTimerHz(20);
 }
@@ -28,6 +30,8 @@ void StanginAudioProcessorEditor::paint (Graphics& g) {
   g.fillAll(bg);
   // draw strings
   drawStrings(g);
+  // draw the menu button for tunings
+  drawTuningMenu(g);
   // draw sliders
   int detune = processor.guitar.detune;
   String detuneText = String::formatted("DETUNE: %s%d", 
@@ -85,11 +89,17 @@ void StanginAudioProcessorEditor::drawStrings(Graphics &g) {
   int stringHeight = stringArea.getHeight() / 6;
   int x = stringArea.getX();
   int y = stringArea.getY();
+  int mw = font.getStringWidth(String("-"));
+  int pw = font.getStringWidth(String("+"));
+  int mps = em / 6;
   int textLeft = x + w; // right edge of text on the left
   int textRight = stringArea.getRight() - w; // left edge of text on the right
   int stringMargin = (em / 2); // space between text and strings
-  int stringLeft = textLeft + stringMargin; // left edge of the string line
+  int stringLeft = textLeft + pw + stringMargin; // left edge of the string line
   int stringRight = textRight - stringMargin; // right edge of the string line
+  // update the area of the tuning display
+  tuningArea = Rectangle<int>(0, y, stringLeft, stringArea.getHeight());
+  tuningMenuArea = Rectangle<int>(0, 0, stringLeft, y);
   // draw strings
   for (i = 0; i < 6; i++) {
     StringState &string = processor.guitar.string[i];
@@ -99,7 +109,14 @@ void StanginAudioProcessorEditor::drawStrings(Graphics &g) {
     g.setColour(fg);
     g.setFont(font);
     g.drawFittedText(openNoteName, 
-      x, y, w, stringHeight, 
+      x, y, w, stringHeight, Justification::centred, 1);
+    // draw +/- symbols to show notes can be clicked to change them
+    g.setColour(bg.interpolatedWith(fg, 0.25f));
+    g.drawFittedText(String("-"), 
+      x - mw - mps, y, mw, stringHeight, 
+      Justification::verticallyCentred | Justification::left, 1);
+    g.drawFittedText(String("+"), 
+      x + w + mps, y, pw, stringHeight, 
       Justification::verticallyCentred | Justification::right, 1);
     // get the fraction of the string's playback time that has elapsed
     float life = 0.0f;
@@ -128,6 +145,21 @@ void StanginAudioProcessorEditor::drawStrings(Graphics &g) {
     // advance to the next string
     y += stringHeight;
   }
+}
+
+void StanginAudioProcessorEditor::drawTuningMenu(Graphics &g) {
+  Path p;
+  Rectangle<float>r = tuningMenuArea.toFloat();
+  float hw = (float)em / 4.0f;
+  float h = (float)em / 3.0f;
+  float x = r.getCentreX();
+  float y = r.getBottom() - ((float)em / 6.0);
+  p.startNewSubPath(x - hw, y - h);
+  p.lineTo(x + hw, y - h);
+  p.lineTo(x, y);
+  p.closeSubPath();
+  g.setColour(bg.interpolatedWith(fg, 0.25f));
+  g.fillPath(p);
 }
 
 // draw a slider
@@ -204,6 +236,35 @@ void StanginAudioProcessorEditor::mouseUp(const MouseEvent &event) {
   else if (tapArea.contains(position)) {
     processor.guitar.tap = ! processor.guitar.tap;
   }
+  // update string tuning on click
+  else if (tuningArea.contains(position)) {
+    int stringHeight = tuningArea.getHeight() / 6;
+    int i = (position.y - tuningArea.getY()) / stringHeight;
+    if (i < 0) i = 0;
+    if (i > 5) i = 5;
+    StringState &string = processor.guitar.string[i];
+    if (position.x >= tuningArea.getCentreX()) {
+      string.openNote += 1;
+    }
+    else {
+      string.openNote -= 1;
+    }
+  }
+  // show the list of tunings on click
+  else if (tuningMenuArea.contains(position)) {
+    LookAndFeel_V3 look;
+    look.setColour(PopupMenu::ColourIds::backgroundColourId, bg);
+    look.setColour(PopupMenu::ColourIds::textColourId, fg);
+    look.setColour(PopupMenu::ColourIds::highlightedBackgroundColourId, accent);
+    look.setColour(PopupMenu::ColourIds::highlightedTextColourId, fg);
+    tuningMenu.setLookAndFeel(&look);
+    int idx = tuningMenu.showAt(localAreaToGlobal(tuningMenuArea)) - 1;
+    if ((idx >= 0) && (idx < tunings.size())) {
+      for (int i = 0; i < 6; i++) {
+        processor.guitar.string[i].openNote = tunings[idx].string[i];
+      }
+    }
+  }
 }
 // drag sliders
 void StanginAudioProcessorEditor::mouseDrag(const MouseEvent &event) {
@@ -275,4 +336,80 @@ String StanginAudioProcessorEditor::noteName(int note, bool withOctave) {
     case 11: return(String("B") + octave);
     default: return(String("?"));
   }
+}
+
+// initialize the tuning menu
+void StanginAudioProcessorEditor::initTuningMenu() {
+  addTuning("Standard",      "E",  "A",  "D",  "G",  "B",  "E");
+  addTuning("Dad-Gad",  "D",  "A",  "D",  "G",  "A",  "D");
+  addTuning("Dad-Dad",  "D",  "A",  "D",  "D",  "A",  "D");
+  tuningMenu.addSeparator();
+  addTuning("Open A",        "E",  "A",  "C#", "E",  "A",  "E");
+  addTuning("Open B",        "B",  "F#", "B",  "F#", "B",  "D#");
+  addTuning("Open C",        "C",  "G",  "C",  "G",  "C",  "E");
+  addTuning("Open D",        "D",  "A",  "D",  "F#", "A",  "D");
+  addTuning("Open E",        "E",  "B",  "E",  "G#", "B",  "E");
+  addTuning("Open F",        "F",  "A",  "C",  "F",  "C",  "F");
+  addTuning("Open G",        "D",  "G",  "D",  "G",  "B",  "D");
+  tuningMenu.addSeparator();
+  addTuning("Cross-note A",  "E",  "A",  "E",  "A",  "C",  "E");
+  addTuning("Cross-note C",  "C",  "G",  "C",  "G",  "C",  "E");
+  addTuning("Cross-note D",  "D",  "A",  "D",  "F",  "A",  "D");
+  addTuning("Cross-note E",  "E",  "B",  "E",  "G",  "B",  "E");
+  addTuning("Cross-note G",  "D",  "G",  "D",  "G",  "Bb", "D");
+  tuningMenu.addSeparator();
+  addTuning("Major Thirds",  "E",  "G#", "C",  "E",  "G#", "C");
+  addTuning("All Fourths",   "E",  "A",  "D",  "G",  "C",  "F");
+  addTuning("Aug Fourths",   "C",  "F#", "C",  "F#", "C",  "F#");
+  addTuning("All Fifths",    "C",  "G",  "D",  "A",  "E",  "G");
+  tuningMenu.addSeparator();
+  addTuning("Drop D",        "D",  "A",  "D",  "G",  "B",  "E");
+  addTuning("Double Drop D", "D",  "A",  "D",  "G",  "B",  "D");  
+}
+
+void StanginAudioProcessorEditor::addTuning(const char *name, 
+                              const char *s0, const char *s1, const char *s2, 
+                              const char *s3, const char *s4, const char *s5) {
+  int i = tunings.size();
+  Tuning newTuning;
+  newTuning.string[5] = nextNote(35, s0);
+  newTuning.string[4] = nextNote(newTuning.string[5], s1);
+  newTuning.string[3] = nextNote(newTuning.string[4], s2);
+  newTuning.string[2] = nextNote(newTuning.string[3], s3);
+  newTuning.string[1] = nextNote(newTuning.string[2], s4);
+  newTuning.string[0] = nextNote(newTuning.string[1], s5);
+  tunings.add(newTuning);
+  String label = String::formatted("%s-%s-%s-%s-%s-%s", s0, s1, s2, s3, s4, s5);
+  String nameString(name);
+  if (! nameString.isEmpty()) {
+    label += String::formatted(" (%s)", name);
+  }
+  tuningMenu.addItem(i + 1, label);
+}
+
+uint8_t StanginAudioProcessorEditor::nextNote(uint8_t note, const char *pitchClass) {
+  uint8_t pitchOffset = getOffsetForPitchClass(pitchClass);
+  while (note % 12 != pitchOffset) note++;
+  return(note);
+}
+uint8_t StanginAudioProcessorEditor::getOffsetForPitchClass(const char *pitchClass) {
+  String s(pitchClass);
+  if (s.equalsIgnoreCase("C")) return(0);
+  if (s.equalsIgnoreCase("C#")) return(1);
+  if (s.equalsIgnoreCase("Db")) return(1);
+  if (s.equalsIgnoreCase("D")) return(2);
+  if (s.equalsIgnoreCase("D#")) return(3);
+  if (s.equalsIgnoreCase("Eb")) return(3);
+  if (s.equalsIgnoreCase("E")) return(4);
+  if (s.equalsIgnoreCase("F")) return(5);
+  if (s.equalsIgnoreCase("F#")) return(6);
+  if (s.equalsIgnoreCase("Gb")) return(6);
+  if (s.equalsIgnoreCase("G")) return(7);
+  if (s.equalsIgnoreCase("G#")) return(8);
+  if (s.equalsIgnoreCase("Ab")) return(8);
+  if (s.equalsIgnoreCase("A")) return(9);
+  if (s.equalsIgnoreCase("A#")) return(10);
+  if (s.equalsIgnoreCase("Bb")) return(10);
+  if (s.equalsIgnoreCase("B")) return(11);
+  return(0);
 }
