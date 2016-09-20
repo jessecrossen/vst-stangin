@@ -31,13 +31,13 @@ host, it should appear under the maker "hautmidi".
 
 1. Drop down a menu of alternate tunings. Please file an issue if there's one you feel should be there.
 2. Tune individual strings up and down by clicking the +/- symbols.
-3. This shows the current fret positions, and strings light up when played and is handy for making tabs.
-4. This shows what note is being fretted on each string and is handy for making scores.
-5. Tune all string up or down by any number of semitones.
+3. This shows the current fret positions, and strings light up when played. It's handy for making tabs.
+4. This shows what note is being fretted on each string. It's handy for making scores.
+5. Tune all strings up or down by any number of semitones.
 6. Adjust the maximum sustain of each note in seconds. Actual sustain will vary with velocity.
-7. Toggle whether to simulate hammer-on and pull-off techniques while a string is playing.
+7. Toggle whether to simulate hammer-on and pull-off techniques while a string is playing. Note that these techniques will not extend the duration of the playing note.
 8. Toggle whether to stop playing a string when all fret buttons are released.
-9. Toggle whether to begin playing a string when a fret button is pressed.
+9. Toggle whether to begin playing a string when a fret button is pressed. If the string is already playing, the duration will be extended when a fret is tapped.
 
 # Controller Button Mappings
 
