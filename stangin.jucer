@@ -8,7 +8,7 @@
               pluginChannelConfigs="" pluginIsSynth="0" pluginWantsMidiIn="1"
               pluginProducesMidiOut="1" pluginIsMidiEffectPlugin="1" pluginEditorRequiresKeys="0"
               pluginAUExportPrefix="stanginAU" pluginRTASCategory="" aaxIdentifier="net.hautmidi.stangin"
-              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="4.2.3"
+              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="4.2.4"
               companyWebsite="https://github.com/jessecrossen" companyEmail="jesse.crossen@gmail.com"
               companyName="hautmidi">
   <MAINGROUP id="e68qos" name="stangin">
