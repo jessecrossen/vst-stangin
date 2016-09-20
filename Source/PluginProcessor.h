@@ -84,6 +84,7 @@ class StanginAudioProcessor  : public AudioProcessor {
   protected:
     int timePressingButton = 0;
     
+    GuitarState resetState(GuitarState state);
     GuitarState updateGuitarState(GuitarState state, int sample, const uint8_t *data, int dataSize);
     GuitarState sendNotes(GuitarState oldState, GuitarState newState, MidiBuffer &output);
     GuitarState ageGuitarState(GuitarState state, int startSample, int endSample, MidiBuffer &output);

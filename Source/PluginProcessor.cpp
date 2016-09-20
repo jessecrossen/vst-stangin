@@ -2,16 +2,7 @@
 #include "PluginEditor.h"
 
 StanginAudioProcessor::StanginAudioProcessor() {
-  int i;
-  guitar.string[0].openNote = 0x40;
-  guitar.string[1].openNote = 0x3B;
-  guitar.string[2].openNote = 0x37;
-  guitar.string[3].openNote = 0x32;
-  guitar.string[4].openNote = 0x2D;
-  guitar.string[5].openNote = 0x28;
-  for (i = 0; i < 6; i++) {
-    guitar.button[i] = false;
-  }
+  guitar = resetState(guitar);
 }
 
 StanginAudioProcessor::~StanginAudioProcessor() {
@@ -57,6 +48,36 @@ void StanginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
   guitar = ageGuitarState(guitar, lastSample, buffer.getNumSamples() - 1, output);
   // swap in the output buffer
   input.swapWith(output);
+}
+
+GuitarState StanginAudioProcessor::resetState(GuitarState state) {
+  int i;
+  // reset the tuning
+  state.string[0].openNote = 0x40;
+  state.string[1].openNote = 0x3B;
+  state.string[2].openNote = 0x37;
+  state.string[3].openNote = 0x32;
+  state.string[4].openNote = 0x2D;
+  state.string[5].openNote = 0x28;
+  // stop all strings
+  for (i = 0; i < 6; i++) {
+    state.string[i].samplesLeft = 0;
+    state.string[i].velocity = 0;
+  }
+  // clear all button presses
+  for (i = 0; i < ButtonCount; i++) {
+    state.button[i] = false;
+  }
+  // reset settings
+  state.detune = 0;
+  state.sustain = 1.0;
+  state.hammeron = true;
+  state.pulloff = true;
+  state.dampOpen = true;
+  state.tap = false;
+  // incorporate changes
+  state.dirty = true;
+  return(state);
 }
 
 // update the state of the guitar from sysex data
@@ -196,12 +217,12 @@ GuitarState StanginAudioProcessor::ageGuitarState(GuitarState state, int startSa
   for (i = 0; i < 6; i++) {
     StringState &string = state.string[i];
     string.age += elapsed;
-    if (string.samplesLeft <= 0) continue;
     if (string.samplesLeft <= elapsed) {
       if (string.note >= 0) {
         channel = i + 1;
         output.addEvent(MidiMessage::noteOff(channel, string.note, string.velocity), 
                         startSample + string.samplesLeft);
+        string.note = -1;
       }
       string.samplesLeft = 0;
     }
@@ -234,6 +255,10 @@ GuitarState StanginAudioProcessor::onButton(GuitarState oldState, ButtonIndex bu
   if (pressed) timePressingButton = - (int)(0.1f * getSampleRate());
   switch (button) {
     case ButtonSquare:
+      if (pressed) {
+        newState.hammeron = ! newState.hammeron;
+        newState.pulloff = ! newState.pulloff;
+      }
       break;
     case ButtonX:
       if (pressed) {
@@ -242,6 +267,7 @@ GuitarState StanginAudioProcessor::onButton(GuitarState oldState, ButtonIndex bu
       }
       break;
     case ButtonCircle:
+      if (pressed) newState.tap = ! newState.tap;
       break;
     case ButtonTriangle:
       if ((pressed) && (newState.sustain > minSustain)) {
@@ -253,6 +279,7 @@ GuitarState StanginAudioProcessor::onButton(GuitarState oldState, ButtonIndex bu
       if (pressed) newState.detune = 0;
       break;
     case ButtonStart:
+      if (pressed) newState = resetState(newState);
       break;
     case ButtonConsole:
       // damp all strings
