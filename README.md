@@ -12,15 +12,17 @@ a pull request with your binary included.
 
 # Installing
 
-TODO
+On Linux, download [the plugin binary](https://github.com/jessecrossen/vst-stangin/raw/master/vst/stangin.so)
+and save it to wherever you keep your VST plugins, for example to `~/.vst`. When you rescan with your plugin
+host, it should appear under the maker "hautmidi".
 
 # Building
 
 1. Install [JUCE](https://www.juce.com/get-juce) and any required libraries. You may need to install the [VST SDK](https://www.juce.com/doc/tutorial_create_projucer_basic_plugin) and other headers for your system.
 2. Clone or download this repository.
-3. Open `stangin.jucer` with the Projucer application and save it.
+3. Open `stangin.jucer` with the Projucer application and select **File > Save Project**.
 4. Navigate to `Builds/LinuxMakefile` and run `make`.
-5. Assuming this works, copy `Builds/LinuxMakefile/build` to wherever you keep your VST plugins.
+5. Assuming this works, copy `Builds/LinuxMakefile/build/stangin.so` to wherever you keep your VST plugins.
 6. Share and enjoy!
 
 # Features and Usage
